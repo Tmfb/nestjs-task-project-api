@@ -7,10 +7,10 @@ import {
   Patch,
 } from '@nestjs/common/decorators/http/request-mapping.decorator';
 import { Param } from '@nestjs/common/decorators/http/route-params.decorator';
-import { filter } from 'rxjs';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { GetTaskFilterDto } from './dto/get-tasks-filter.dto';
-import { Task, TaskStatus } from './tasks.model';
+import { UpdateTaskStatusDto } from './dto/update-task-status.dto';
+import { Task } from './tasks.model';
 import { TasksService } from './tasks.service';
 
 @Controller('tasks')
@@ -45,10 +45,11 @@ export class TasksController {
   }
 
   @Patch('/:id/status')
-  updateTask(
+  updateTaskStatus(
     @Param('id') id: string,
-    @Body('status') status: TaskStatus,
+    @Body() updateTaskStatusDto: UpdateTaskStatusDto,
   ): Task {
-    return this.taskService.updateTask(id, status);
+    const { status } = updateTaskStatusDto;
+    return this.taskService.updateTaskStatus(id, status);
   }
 }
