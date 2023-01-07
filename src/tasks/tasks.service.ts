@@ -4,9 +4,11 @@ import { v4 as uuid } from 'uuid';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { GetTaskFilterDto } from './dto/get-tasks-filter.dto';
 import { NotFoundException } from '@nestjs/common/exceptions';
+import { TaskRepository } from './task.repository';
 
 @Injectable()
 export class TasksService {
+  constructor(private taskRepository: TaskRepository) {}
   private tasks: Task[] = [];
 
   getAllTasks(): Task[] {
