@@ -19,16 +19,10 @@ export class TasksController {
   //Constructor
   constructor(private taskService: TasksService) {}
 
-  // @Get()
-  // getTasks(@Query() filterDto: GetTaskFilterDto): Task[] {
-  //   // If we have any filters defined call taskService.getTasksWithFilters
-  //   // otherwise just get all tasks
-  //   if (Object.keys(filterDto).length) {
-  //     return this.taskService.getTaskWithFilter(filterDto);
-  //   } else {
-  //     return this.taskService.getAllTasks();
-  //   }
-  // }
+  @Get()
+  getTasks(@Query() filterDto: GetTaskFilterDto): Promise<Task[]> {
+    return this.taskService.getTasks(filterDto);
+  }
 
   @Post()
   createTask(@Body() createTaskDto: CreateTaskDto): Promise<Task> {
