@@ -12,4 +12,8 @@ export class AuthController {
   singUp(@Body() authCredentialsDto: AuthCredentialsDto): Promise<void> {
     return this.authService.singUp(authCredentialsDto);
   }
+  @Post('/signin')
+  singIn(@Body() authCredentialsDto: AuthCredentialsDto): Promise<string> {
+    return this.authService.singIn(authCredentialsDto);
+  }
 }
