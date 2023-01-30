@@ -31,7 +31,6 @@ export class UsersRepository extends Repository<User> {
       } else {
         throw new InternalServerErrorException();
       }
-      console.log(error.code);
     }
   }
 }
