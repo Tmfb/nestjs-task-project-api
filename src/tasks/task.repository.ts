@@ -45,6 +45,7 @@ export class TaskRepository extends Repository<Task> {
         `Failed to fetch tasks for User "${
           user.username
         }". Filters: ${JSON.stringify(filterDto)}`,
+        error.stack,
       );
       throw new InternalServerErrorException();
     }
@@ -58,8 +59,14 @@ export class TaskRepository extends Repository<Task> {
       status: TaskStatus.OPEN,
       user,
     });
-
-    await this.save(task);
+    try {
+      await this.save(task);
+    } catch (error) {
+      this.logger.error(
+        `Failed to save new task: ${task} owned by User: ${user}`,
+        error.stack,
+      );
+    }
     return task;
   }
 }
