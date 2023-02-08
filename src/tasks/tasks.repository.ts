@@ -8,10 +8,10 @@ import { DataSource, Repository } from 'typeorm';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { GetTaskFilterDto } from './dto/get-tasks-filter.dto';
 import { Task } from './task.entity';
-import { TaskStatus } from './tasks-status.enum';
+import { TaskStatus } from './task-status.enum';
 
 @Injectable()
-export class TaskRepository extends Repository<Task> {
+export class TasksRepository extends Repository<Task> {
   private logger = new Logger('TasksRepository', { timestamp: true });
   constructor(private dataSource: DataSource) {
     super(Task, dataSource.createEntityManager());

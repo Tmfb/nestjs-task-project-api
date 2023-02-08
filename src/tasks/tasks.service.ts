@@ -1,8 +1,8 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { TaskStatus } from './tasks-status.enum';
+import { TaskStatus } from './task-status.enum';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { GetTaskFilterDto } from './dto/get-tasks-filter.dto';
-import { TaskRepository } from './task.repository';
+import { TasksRepository } from './tasks.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Task } from './task.entity';
 import { User } from '../auth/user.entity';
@@ -10,8 +10,8 @@ import { User } from '../auth/user.entity';
 @Injectable()
 export class TasksService {
   constructor(
-    @InjectRepository(TaskRepository)
-    private taskRepository: TaskRepository,
+    @InjectRepository(TasksRepository)
+    private taskRepository: TasksRepository,
   ) {}
 
   async getTasks(filterDto: GetTaskFilterDto, user: User): Promise<Task[]> {

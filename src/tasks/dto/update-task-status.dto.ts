@@ -1,4 +1,4 @@
-import { TaskStatus } from '../tasks-status.enum';
+import { TaskStatus } from '../task-status.enum';
 import { IsEnum } from 'class-validator';
 
 export class UpdateTaskStatusDto {
