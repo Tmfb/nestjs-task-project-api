@@ -66,6 +66,7 @@ export class TasksRepository extends Repository<Task> {
         `Failed to save new task: ${task} owned by User: ${user}`,
         error.stack,
       );
+      throw new InternalServerErrorException();
     }
     return task;
   }
