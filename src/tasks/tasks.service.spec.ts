@@ -35,7 +35,7 @@ const mockCreateTaskDto = {
   description: 'someDescription',
 };
 
-describe('TaskService', () => {
+describe('TasksService', () => {
   let tasksService: TasksService;
   let tasksRepository;
 
