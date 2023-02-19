@@ -4,14 +4,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { configValidationSchema } from './config.schema';
+import { ProjectsModule } from './projects/projects.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({
       envFilePath: [`.env.stage.${process.env.STAGE}`],
       validationSchema: configValidationSchema,
     }),
-    TasksModule,
-    AuthModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -26,6 +26,9 @@ import { configValidationSchema } from './config.schema';
         database: configService.get('DB_DATABASE'),
       }),
     }),
+    TasksModule,
+    AuthModule,
+    ProjectsModule,
   ],
   providers: [],
 })
