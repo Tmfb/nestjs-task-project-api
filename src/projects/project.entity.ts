@@ -1,5 +1,13 @@
-import { Task } from 'src/tasks/task.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from '../auth/user.entity';
+import { Task } from '../tasks/task.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class Project {
@@ -14,4 +22,8 @@ export class Project {
 
   @OneToMany((_type) => Task, (task) => task.project)
   tasks: Task[];
+
+  @OneToOne((_type) => User)
+  @JoinColumn()
+  admin: User;
 }
