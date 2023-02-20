@@ -4,6 +4,7 @@ import {
   Column,
   Entity,
   JoinColumn,
+  ManyToMany,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -26,4 +27,7 @@ export class Project {
   @OneToOne((_type) => User)
   @JoinColumn()
   admin: User;
+
+  @ManyToMany((_type) => User, (user) => user.projects, {})
+  users: User;
 }
