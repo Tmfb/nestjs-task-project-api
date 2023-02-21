@@ -29,5 +29,5 @@ export class Project {
   admin: User;
 
   @ManyToMany((_type) => User, (user) => user.projects, {})
-  users: User;
+  users: User[];
 }
