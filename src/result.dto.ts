@@ -7,7 +7,7 @@ export class Result {
   state: ResultStates;
   data;
   constructor(state: ResultStates, data = {}) {
-    state = state;
-    data = data;
+    this.state = state;
+    this.data = data;
   }
 }
