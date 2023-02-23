@@ -1,12 +1,5 @@
 import { Task } from '../tasks/task.entity';
-import {
-  Column,
-  Entity,
-  JoinTable,
-  ManyToMany,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { Project } from '../projects/project.entity';
 
 @Entity()
@@ -23,7 +16,6 @@ export class User {
   @OneToMany((_type) => Task, (task) => task.user, { eager: true })
   tasks: Task[];
 
-  @ManyToMany((_type) => Project, (project) => project.users)
-  @JoinTable()
+  @OneToMany((_type) => Project, (project) => project.admin, { eager: true })
   projects: Project[];
 }

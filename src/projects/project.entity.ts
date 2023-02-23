@@ -1,10 +1,10 @@
 import { User } from '../auth/user.entity';
-import { Task } from '../tasks/task.entity';
 import {
   Column,
   Entity,
   JoinColumn,
   ManyToMany,
+  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -21,13 +21,6 @@ export class Project {
   @Column()
   description: string;
 
-  @OneToMany((_type) => Task, (task) => task.project)
-  tasks: Task[];
-
-  @OneToOne((_type) => User)
-  @JoinColumn()
-  admin: User;
-
-  @ManyToMany((_type) => User, (user) => user.projects, {})
-  users: User[];
+  @ManyToOne((_type) => User, (user) => user.projects)
+  admin: string;
 }
