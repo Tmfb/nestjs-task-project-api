@@ -28,4 +28,8 @@ export class ProjectsService {
   ): Promise<Result> {
     return this.projectsRepository.getProjects(filterDto, user);
   }
+
+  async getProjectById(id: string, user: User): Promise<Result> {
+    return this.projectsRepository.getProjectById(id, user);
+  }
 }

@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   HttpException,
+  Param,
   Post,
   Query,
   UseGuards,
@@ -54,6 +55,19 @@ export class ProjectsController {
   }
 
   // Get project by Id
+  @Get('/:id')
+  async getProjectById(
+    @Param('id') id: string,
+    @GetUser() user: User,
+  ): Promise<Result> {
+    const result = await this.projectsService.getProjectById(id, user);
+
+    if (result.state == ResultStates.ERROR) {
+      throw new HttpException(result.data.message, result.data.statusCode);
+    }
+
+    return result.data;
+  }
 
   // Update project
 
