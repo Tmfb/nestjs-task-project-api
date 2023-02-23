@@ -29,7 +29,13 @@ export class ProjectsService {
     return this.projectsRepository.getProjects(filterDto, user);
   }
 
+  // Get project by Id
   async getProjectById(id: string, user: User): Promise<Result> {
     return this.projectsRepository.getProjectById(id, user);
+  }
+
+  // Get project by Id
+  async deleteProject(id: string, user: User): Promise<Result> {
+    return this.projectsRepository.deleteProject(id, user);
   }
 }

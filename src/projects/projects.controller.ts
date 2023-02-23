@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpException,
   Param,
@@ -72,6 +73,18 @@ export class ProjectsController {
   // Update project
 
   // Delete Project
+  @Delete('/:id')
+  async deleteProject(
+    @Param('id') id: string,
+    @GetUser() user: User,
+  ): Promise<Result> {
+    const result = await this.projectsService.deleteProject(id, user);
 
+    if (result.state == ResultStates.ERROR) {
+      throw new HttpException(result.data.message, result.data.statusCode);
+    }
+
+    return result.data;
+  }
   //
 }

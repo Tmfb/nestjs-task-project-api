@@ -18,7 +18,7 @@ export class ProjectsRepository extends Repository<Project> {
     user: User,
   ): Promise<Result> {
     const { title, description, tasks, users } = createProjectDto;
-    const project = this.create({
+    const project: Project = this.create({
       title: title,
       description: description,
       admin: user.id,
@@ -85,5 +85,26 @@ export class ProjectsRepository extends Repository<Project> {
     }
 
     return new Result(ResultStates.OK, project);
+  }
+
+  async deleteProject(id: string, user: User): Promise<Result> {
+    let removed;
+    try {
+      removed = await this.delete({ id: id, admin: user.id });
+    } catch (error) {
+      return new Result(ResultStates.ERROR, {
+        message: error.message,
+        statusCode: error.statusCode,
+      });
+    }
+
+    if (removed.affected == 0) {
+      return new Result(ResultStates.ERROR, {
+        message: `Project with id ${id} not found`,
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
+
+    return new Result(ResultStates.OK);
   }
 }
