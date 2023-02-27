@@ -38,4 +38,14 @@ export class UsersRepository extends Repository<User> {
       }
     }
   }
+
+  async getUserWithPassword(username: string): Promise<User> {
+    const query = this.createQueryBuilder('user');
+    query.where('user.username = :username', { username });
+    query.addSelect('user.password');
+
+    const user = await query.getOne();
+
+    return user;
+  }
 }

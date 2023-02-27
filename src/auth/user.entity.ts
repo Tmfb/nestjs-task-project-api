@@ -10,12 +10,12 @@ export class User {
   @Column({ unique: true })
   username: string;
 
-  @Column()
+  @Column({ select: false })
   password: string;
 
-  @OneToMany((_type) => Task, (task) => task.user, { eager: true })
+  @OneToMany((_type) => Task, (task) => task.user)
   tasks: Task[];
 
-  @OneToMany((_type) => Project, (project) => project.admin, { eager: true })
+  @OneToMany((_type) => Project, (project) => project.admin)
   projects: Project[];
 }
