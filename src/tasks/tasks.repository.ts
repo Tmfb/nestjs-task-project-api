@@ -1,9 +1,4 @@
-import {
-  HttpStatus,
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-} from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { User } from '../auth/user.entity';
 import { DataSource, Repository } from 'typeorm';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -28,7 +23,7 @@ export class TasksRepository extends Repository<Task> {
 
   //Database logic
 
-  async getTasks(filterDto: GetTaskFilterDto, user: User): Promise<Task[]> {
+  async getTasks(filterDto: GetTaskFilterDto, user: User): Promise<Result> {
     const { status, search } = filterDto;
 
     const query = this.createQueryBuilder('task');
@@ -45,9 +40,10 @@ export class TasksRepository extends Repository<Task> {
         { search: `%${search}%` },
       );
     }
+
     try {
       const tasks = await query.getMany();
-      return tasks;
+      return new Result(ResultStates.OK, tasks);
     } catch (error) {
       this.logger.error(
         `Failed to fetch tasks for User "${
@@ -55,7 +51,10 @@ export class TasksRepository extends Repository<Task> {
         }". Filters: ${JSON.stringify(filterDto)}`,
         error.stack,
       );
-      throw new InternalServerErrorException();
+      return new Result(ResultStates.ERROR, {
+        message: error.message,
+        statusCode: error.statusCode,
+      });
     }
   }
 

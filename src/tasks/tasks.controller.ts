@@ -24,11 +24,17 @@ export class TasksController {
   constructor(private taskService: TasksService) {}
 
   @Get()
-  getTasks(
+  async getTasks(
     @Query() filterDto: GetTaskFilterDto,
     @GetUser() user: User,
   ): Promise<Task[]> {
-    return this.taskService.getTasks(filterDto, user);
+    const result = await this.taskService.getTasks(filterDto, user);
+
+    if (result.state == ResultStates.ERROR) {
+      throw new HttpException(result.data.message, result.data.statusCode);
+    }
+
+    return result.data;
   }
 
   @Post()
@@ -37,6 +43,7 @@ export class TasksController {
     @GetUser() user: User,
   ): Promise<Task> {
     const result = await this.taskService.createTask(createTaskDto, user);
+
     if (result.state == ResultStates.ERROR) {
       throw new HttpException(result.data.message, result.data.statusCode);
     }
