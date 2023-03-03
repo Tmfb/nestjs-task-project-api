@@ -148,6 +148,7 @@ export class TasksRepository extends Repository<Task> {
     // Update the database
     try {
       this.save(result.data);
+      return result;
     } catch (error) {
       // Log any error and foward it to the controller encapsulated in a Result
       this.logger.error(
@@ -160,8 +161,6 @@ export class TasksRepository extends Repository<Task> {
         statusCode: error.statusCode,
       });
     }
-    // If everything goes fine, resturn the result with the updated task entity as data
-    return result;
   }
 
   async updateTaskResolver(
@@ -173,6 +172,7 @@ export class TasksRepository extends Repository<Task> {
     const query = this.createQueryBuilder('task');
     query.where({ admin: user });
     query.andWhere({ id: id });
+
     // Try fetching the task if it exists and authed user is admin
     try {
       found = await query.getOne();
@@ -197,6 +197,7 @@ export class TasksRepository extends Repository<Task> {
     // Update the database
     try {
       this.save(found);
+      return new Result(ResultStates.OK, found);
     } catch (error) {
       // Log any error and foward it to the controller encapsulated in a Result
       this.logger.error(
@@ -204,11 +205,57 @@ export class TasksRepository extends Repository<Task> {
         error.stack,
       );
       return new Result(ResultStates.ERROR, {
-        message: `Couldn't save task with id ${id}`,
+        message: `Failed to update project of task with id ${id}`,
         statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       });
     }
+  }
 
-    return new Result(ResultStates.OK, found);
+  async updateTaskProject(
+    id: string,
+    project: string,
+    user: User,
+  ): Promise<Result> {
+    let found;
+    const query = this.createQueryBuilder('task');
+    query.where({ admin: user });
+    query.andWhere({ id: id });
+
+    // Try fetching the task if it exists and authed user is admin
+    try {
+      found = await query.getOne();
+    } catch (error) {
+      return new Result(ResultStates.ERROR, {
+        message: error.message,
+        statusCode: error.statusCode,
+      });
+    }
+
+    // If Query returns empty either task doesn't exist or authed user is not admin
+    if (!found) {
+      return new Result(ResultStates.ERROR, {
+        message: `Task with id ${id} not found or you don't have permision to modify it's project`,
+        statusCode: HttpStatus.BAD_REQUEST,
+      });
+    }
+
+    // Modify task project
+    found.project = project;
+
+    // Update the database
+    try {
+      this.save(found);
+      return new Result(ResultStates.OK, found);
+    } catch (error) {
+      // Log any error and foward it to the controller encapsulated in a Result
+      this.logger.error(
+        `Failed to update project of task with id ${id}`,
+        error.stack,
+      );
+      return new Result(ResultStates.ERROR, {
+        message: `Failed to update project of task with id ${id}`,
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      });
+    }
   }
 }
