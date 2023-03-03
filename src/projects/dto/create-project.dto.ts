@@ -1,6 +1,4 @@
-import { IsNotEmpty, IsOptional } from 'class-validator';
-import { Task } from '../../tasks/task.entity';
-import { User } from '../../auth/user.entity';
+import { IsNotEmpty } from 'class-validator';
 
 export class CreateProjectDto {
   @IsNotEmpty()
@@ -8,10 +6,4 @@ export class CreateProjectDto {
 
   @IsNotEmpty()
   description: string;
-
-  @IsOptional()
-  tasks: Task[];
-
-  @IsOptional()
-  users: User[];
 }

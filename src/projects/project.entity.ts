@@ -2,13 +2,12 @@ import { User } from '../auth/user.entity';
 import {
   Column,
   Entity,
-  JoinColumn,
   ManyToMany,
   ManyToOne,
   OneToMany,
-  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Task } from '../tasks/task.entity';
 
 @Entity()
 export class Project {
@@ -21,6 +20,14 @@ export class Project {
   @Column()
   description: string;
 
-  @ManyToOne((_type) => User, (user) => user.projects)
-  admin: string;
+  // Tasks relationships
+  @ManyToOne(() => User, (user) => user.administratedProjects)
+  admin: User;
+
+  @ManyToMany(() => User, (user) => user.projects)
+  members: User[];
+
+  // Task relationship
+  @OneToMany(() => Task, (task) => task.project)
+  tasks: Task[];
 }

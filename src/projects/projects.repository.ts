@@ -17,11 +17,13 @@ export class ProjectsRepository extends Repository<Project> {
     createProjectDto: CreateProjectDto,
     user: User,
   ): Promise<Result> {
-    const { title, description, tasks, users } = createProjectDto;
+    const { title, description } = createProjectDto;
     const project: Project = this.create({
       title: title,
       description: description,
-      admin: user.id,
+      admin: user,
+      members: [],
+      tasks: [],
     });
 
     try {
@@ -90,7 +92,7 @@ export class ProjectsRepository extends Repository<Project> {
   async deleteProject(id: string, user: User): Promise<Result> {
     let removed;
     try {
-      removed = await this.delete({ id: id, admin: user.id });
+      removed = await this.delete({ id: id, admin: user });
     } catch (error) {
       return new Result(ResultStates.ERROR, {
         message: error.message,
