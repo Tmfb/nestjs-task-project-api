@@ -25,10 +25,6 @@ export class UsersRepository extends Repository<User> {
     const user = this.create({
       username,
       password: hashedPassword,
-      createdTasks: [],
-      pendingTasks: [],
-      administratedProjects: [],
-      projects: [],
     });
     //  Save to the database
     try {
