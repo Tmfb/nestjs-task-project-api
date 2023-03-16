@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common/exceptions';
 import { DataSource, Repository } from 'typeorm';
 import { AuthCredentialsDto } from './dto/auth-credentials.dto';
-import { User } from './user.entity';
+import { User } from '../users/user.entity';
 import * as bcrypt from 'bcrypt';
 import { Logger } from '@nestjs/common';
 

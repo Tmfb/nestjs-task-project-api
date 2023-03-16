@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { User } from '../auth/user.entity';
+import { User } from '../users/user.entity';
 import { DataSource, Repository } from 'typeorm';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { GetTaskFilterDto } from './dto/get-tasks-filter.dto';
@@ -7,7 +7,7 @@ import { Task } from './task.entity';
 import { TaskStatus } from './task-status.enum';
 import { Result, ResultStates } from 'src/result.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { UsersRepository } from '../auth/users.repository';
+import { UsersRepository } from '../auth/auth.repository';
 
 @Injectable()
 export class TasksRepository extends Repository<Task> {

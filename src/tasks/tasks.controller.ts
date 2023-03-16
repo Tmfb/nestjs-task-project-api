@@ -11,7 +11,7 @@ import { Param } from '@nestjs/common/decorators/http/route-params.decorator';
 import { AuthGuard } from '@nestjs/passport';
 import { ResultStates } from '../result.dto';
 import { GetUser } from '../auth/get-user.decorator';
-import { User } from '../auth/user.entity';
+import { User } from '../users/user.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { GetTaskFilterDto } from './dto/get-tasks-filter.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
