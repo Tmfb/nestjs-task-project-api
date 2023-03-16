@@ -14,16 +14,16 @@ export class TasksService {
     private taskRepository: TasksRepository,
   ) {}
 
-  async createTask(createTaskDto: CreateTaskDto, user: User): Promise<Result> {
-    return await this.taskRepository.createTask(createTaskDto, user);
-  }
-
   async getTasks(filterDto: GetTaskFilterDto, user: User): Promise<Result> {
     return this.taskRepository.getTasks(filterDto, user);
   }
 
   async getTaskById(id: string, user: User): Promise<Result> {
     return await this.taskRepository.getTaskById(id, user);
+  }
+
+  async createTask(createTaskDto: CreateTaskDto, user: User): Promise<Result> {
+    return await this.taskRepository.createTask(createTaskDto, user);
   }
 
   async deleteTask(id: string, user: User): Promise<Result> {
@@ -45,7 +45,11 @@ export class TasksService {
     return this.taskRepository.updateTaskStatus(id, status, user);
   }
 
-  async updateTaskProject(id: string, projectId: string, user: User) {
-    return this.taskRepository.updateTaskProject(id, projectId, user);
+  async updateTaskResolver(
+    id: string,
+    resolver: string,
+    user: User,
+  ): Promise<Result> {
+    return this.taskRepository.updateTaskResolver(id, resolver, user);
   }
 }

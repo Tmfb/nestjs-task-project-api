@@ -8,7 +8,6 @@ import { TaskStatus } from './task-status.enum';
 import { Result, ResultStates } from 'src/result.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersRepository } from '../auth/users.repository';
-import { ProjectsRepository } from '../projects/projects.repository';
 
 @Injectable()
 export class TasksRepository extends Repository<Task> {
@@ -18,84 +17,11 @@ export class TasksRepository extends Repository<Task> {
     private dataSource: DataSource,
     @InjectRepository(UsersRepository)
     private usersRepository: UsersRepository,
-    @InjectRepository(ProjectsRepository)
-    private projectsRepository: ProjectsRepository,
   ) {
     super(Task, dataSource.createEntityManager());
   }
 
   //Database logic
-
-  async createTask(createTaskDto: CreateTaskDto, user: User): Promise<Result> {
-    const { title, description, resolverUserId, projectId } = createTaskDto;
-    const task: Task = this.create({
-      title,
-      description,
-      status: TaskStatus.OPEN,
-      admin: user,
-      resolver: user,
-    });
-
-    // Checking if provided resolverUser exists
-    if (resolverUserId) {
-      try {
-        const found = await this.usersRepository.findOne({
-          where: {
-            id: resolverUserId,
-          },
-        });
-        if (!found) {
-          return new Result(ResultStates.ERROR, {
-            message: `User with id ${resolverUserId} not found`,
-            statusCode: HttpStatus.NOT_FOUND,
-          });
-        }
-        task.resolver = found;
-      } catch (error) {
-        return new Result(ResultStates.ERROR, {
-          message: error.message,
-          statusCode: error.statusCode,
-        });
-      }
-    }
-
-    // Checking if provided projecId exists
-    if (projectId) {
-      try {
-        const found = await this.projectsRepository.findOne({
-          where: {
-            id: projectId,
-          },
-        });
-        if (!found) {
-          return new Result(ResultStates.ERROR, {
-            message: `Project with id ${projectId} not found`,
-            statusCode: HttpStatus.NOT_FOUND,
-          });
-        }
-        task.project = found;
-      } catch (error) {
-        return new Result(ResultStates.ERROR, {
-          message: error.message,
-          statusCode: error.statusCode,
-        });
-      }
-    }
-
-    try {
-      await this.save(task);
-    } catch (error) {
-      this.logger.error(
-        `Failed to save new task: ${task} owned by User: ${user}`,
-        error.stack,
-      );
-      return new Result(ResultStates.ERROR, {
-        message: error.message,
-        statusCode: error.statusCode,
-      });
-    }
-    return new Result(ResultStates.OK, task);
-  }
 
   async getTasks(filterDto: GetTaskFilterDto, user: User): Promise<Result> {
     const { status, search } = filterDto;
@@ -134,15 +60,13 @@ export class TasksRepository extends Repository<Task> {
 
   async getTaskById(id: string, user: User): Promise<Result> {
     let found: Task;
+    const query = this.createQueryBuilder('task');
+    query.where([{ admin: user }, { resolver: user }]);
+
+    query.andWhere({ id: id });
 
     try {
-      found = await this.findOne({
-        where: [
-          { admin: user, id: id },
-          { resolver: user, id: id },
-        ],
-        relations: { admin: true, resolver: true, project: true },
-      });
+      found = await query.getOne();
     } catch (error) {
       return new Result(ResultStates.ERROR, {
         message: error.message,
@@ -157,6 +81,54 @@ export class TasksRepository extends Repository<Task> {
       });
     }
     return new Result(ResultStates.OK, found);
+  }
+
+  async createTask(createTaskDto: CreateTaskDto, user: User): Promise<Result> {
+    const { title, description, resolverUserId } = createTaskDto;
+    const task: Task = this.create({
+      title,
+      description,
+      status: TaskStatus.OPEN,
+      admin: user,
+      resolver: user,
+      project: null,
+    });
+
+    if (resolverUserId) {
+      try {
+        const found = await this.usersRepository.findOne({
+          where: {
+            id: resolverUserId,
+          },
+        });
+        if (!found) {
+          return new Result(ResultStates.ERROR, {
+            message: `User with id ${resolverUserId} not found`,
+            statusCode: HttpStatus.NOT_FOUND,
+          });
+        }
+        task.resolver = found;
+      } catch (error) {
+        return new Result(ResultStates.ERROR, {
+          message: error.message,
+          statusCode: error.statusCode,
+        });
+      }
+    }
+
+    try {
+      await this.save(task);
+    } catch (error) {
+      this.logger.error(
+        `Failed to save new task: ${task} owned by User: ${user}`,
+        error.stack,
+      );
+      return new Result(ResultStates.ERROR, {
+        message: error.message,
+        statusCode: error.statusCode,
+      });
+    }
+    return new Result(ResultStates.OK, task);
   }
 
   async updateTaskStatus(
@@ -241,16 +213,17 @@ export class TasksRepository extends Repository<Task> {
 
   async updateTaskProject(
     id: string,
-    projectId: string,
+    project: string,
     user: User,
   ): Promise<Result> {
-    let foundTask, foundProject;
+    let found;
+    const query = this.createQueryBuilder('task');
+    query.where({ admin: user });
+    query.andWhere({ id: id });
 
     // Try fetching the task if it exists and authed user is admin
     try {
-      foundTask = await this.findOne({
-        where: { admin: user, id: id },
-      });
+      found = await query.getOne();
     } catch (error) {
       return new Result(ResultStates.ERROR, {
         message: error.message,
@@ -258,58 +231,21 @@ export class TasksRepository extends Repository<Task> {
       });
     }
 
-    // If find returns empty either task doesn't exist or authed user is not admin
-    if (!foundTask) {
+    // If Query returns empty either task doesn't exist or authed user is not admin
+    if (!found) {
       return new Result(ResultStates.ERROR, {
         message: `Task with id ${id} not found or you don't have permision to modify it's project`,
         statusCode: HttpStatus.BAD_REQUEST,
       });
     }
 
-    // Try fetching the project
-    try {
-      foundProject = await this.projectsRepository.findOne({
-        where: { id: projectId, admin: user },
-        relations: { tasks: true },
-      });
-    } catch (error) {
-      return new Result(ResultStates.ERROR, {
-        message: error.message,
-        statusCode: error.statusCode,
-      });
-    }
+    // Modify task project
+    found.project = project;
 
-    // If find returns empty either project doesn't exist or authed user is not admin
-    if (!foundProject) {
-      return new Result(ResultStates.ERROR, {
-        message: `Project with id ${projectId} not found or you don't have permision to modify it's tasks`,
-        statusCode: HttpStatus.BAD_REQUEST,
-      });
-    }
-
-    // Initialice project.tasks if the project is empty
-    if (!foundProject.tasks) {
-      foundProject.tasks = [];
-    }
-
-    // Check if the task already belongs to the project
-    if (
-      foundProject.tasks.some((task) => {
-        return task.id == foundTask.id;
-      })
-    ) {
-      return new Result(ResultStates.ERROR, {
-        message: `Task with id ${id} already belongs to project with id ${projectId}`,
-        statusCode: HttpStatus.BAD_REQUEST,
-      });
-    }
-    // Add task to project.tasks, cascade will update task.project on save
-    foundProject.tasks.push(foundTask);
-    foundTask.project = foundProject;
     // Update the database
     try {
-      this.projectsRepository.save(foundProject);
-      return new Result(ResultStates.OK, foundTask);
+      this.save(found);
+      return new Result(ResultStates.OK, found);
     } catch (error) {
       // Log any error and foward it to the controller encapsulated in a Result
       this.logger.error(

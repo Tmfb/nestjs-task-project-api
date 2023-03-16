@@ -23,13 +23,12 @@ import { TasksService } from './tasks.service';
 export class TasksController {
   constructor(private taskService: TasksService) {}
 
-  // POST
-  @Post()
-  async createTask(
-    @Body() createTaskDto: CreateTaskDto,
+  @Get()
+  async getTasks(
+    @Query() filterDto: GetTaskFilterDto,
     @GetUser() user: User,
-  ): Promise<Task> {
-    const result = await this.taskService.createTask(createTaskDto, user);
+  ): Promise<Task[]> {
+    const result = await this.taskService.getTasks(filterDto, user);
 
     if (result.state == ResultStates.ERROR) {
       throw new HttpException(result.data.message, result.data.statusCode);
@@ -38,13 +37,12 @@ export class TasksController {
     return result.data;
   }
 
-  // GET
-  @Get()
-  async getTasks(
-    @Query() filterDto: GetTaskFilterDto,
+  @Post()
+  async createTask(
+    @Body() createTaskDto: CreateTaskDto,
     @GetUser() user: User,
-  ): Promise<Task[]> {
-    const result = await this.taskService.getTasks(filterDto, user);
+  ): Promise<Task> {
+    const result = await this.taskService.createTask(createTaskDto, user);
 
     if (result.state == ResultStates.ERROR) {
       throw new HttpException(result.data.message, result.data.statusCode);
@@ -67,7 +65,6 @@ export class TasksController {
     return result.data;
   }
 
-  // DELETE
   @Delete('/:id')
   async deleteTask(
     @Param('id') id: string,
@@ -80,7 +77,6 @@ export class TasksController {
     }
   }
 
-  // PATCH
   @Patch('/:id/status')
   async updateTaskStatus(
     @Param('id') id: string,
@@ -92,6 +88,7 @@ export class TasksController {
     }
     const status = updateTaskDto.status;
     const result = await this.taskService.updateTaskStatus(id, status, user);
+
     if (result.state == ResultStates.ERROR) {
       throw new HttpException(result.data.message, result.data.statusCode);
     }
@@ -99,16 +96,19 @@ export class TasksController {
     return result.data;
   }
 
-  @Patch('/:id/project')
-  async updateTaskProject(
+  @Patch('/:id/resolver')
+  async updateTaskResolver(
     @Param('id') id: string,
     @Body() updateTaskDto: UpdateTaskDto,
     @GetUser() user: User,
   ): Promise<Task> {
-    const projectId = updateTaskDto.project;
-    const result = await this.taskService.updateTaskProject(
+    if (updateTaskDto.resolver == undefined) {
+      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+    }
+    const resolver = updateTaskDto.resolver;
+    const result = await this.taskService.updateTaskResolver(
       id,
-      projectId,
+      resolver,
       user,
     );
 

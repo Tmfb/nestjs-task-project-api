@@ -2,7 +2,6 @@ import { User } from '../auth/user.entity';
 import {
   Column,
   Entity,
-  JoinTable,
   ManyToMany,
   ManyToOne,
   OneToMany,
@@ -26,10 +25,9 @@ export class Project {
   admin: User;
 
   @ManyToMany(() => User, (user) => user.projects)
-  @JoinTable()
   members: User[];
 
   // Task relationship
-  @OneToMany(() => Task, (task) => task.project, { cascade: true })
+  @OneToMany(() => Task, (task) => task.project)
   tasks: Task[];
 }
