@@ -86,5 +86,4 @@ export class ProjectsController {
 
     return result.data;
   }
-  //
 }
