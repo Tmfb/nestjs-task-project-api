@@ -8,4 +8,7 @@ export class CreateTaskDto {
 
   @IsOptional()
   resolverUserId: string;
+
+  @IsOptional()
+  projectId: string;
 }

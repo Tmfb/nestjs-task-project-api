@@ -15,6 +15,7 @@ import { User } from '../auth/user.entity';
 import { Result, ResultStates } from '../result.dto';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { GetProjectsFilterDto } from './dto/get-projects-filter.dto';
+import { Project } from './project.entity';
 import { ProjectsService } from './projects.service';
 
 @Controller('projects')
@@ -70,8 +71,6 @@ export class ProjectsController {
     return result.data;
   }
 
-  // Update project
-
   // Delete Project
   @Delete('/:id')
   async deleteProject(
@@ -86,5 +85,18 @@ export class ProjectsController {
 
     return result.data;
   }
-  //
+
+  @Get('/:id/testing')
+  async testing(
+    @Param('id') id: string,
+    @GetUser() user: User,
+  ): Promise<Project> {
+    const result = await this.projectsService.testing(id, user);
+
+    if (result.state == ResultStates.ERROR) {
+      throw new HttpException(result.data.message, result.data.statusCode);
+    }
+
+    return result.data;
+  }
 }

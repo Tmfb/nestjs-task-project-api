@@ -22,7 +22,7 @@ export class ProjectsRepository extends Repository<Project> {
       title: title,
       description: description,
       admin: user,
-      members: [],
+      members: [user],
       tasks: [],
     });
 
@@ -65,23 +65,27 @@ export class ProjectsRepository extends Repository<Project> {
   }
 
   async getProjectById(id: string, user: User): Promise<Result> {
-    let project;
-    const query = this.createQueryBuilder('project');
-    query.where('project.admin = :adminId ', { adminId: user.id });
-    query.andWhere('project.id = :id', { id: id });
+    let project: Project;
 
     try {
-      project = await query.getOne();
+      project = await this.findOne({
+        where: [{ id: id }],
+        relations: { admin: true, tasks: true, members: true },
+      });
     } catch (error) {
       return new Result(ResultStates.ERROR, {
         message: error.message,
         statusCode: error.statusCode,
       });
     }
-
-    if (!project) {
+    if (
+      !project ||
+      project.members.some((member) => {
+        return member == user;
+      })
+    ) {
       return new Result(ResultStates.ERROR, {
-        message: `Project with id ${id} not found`,
+        message: `Project with id ${id} not found or you are not a member`,
         statusCode: HttpStatus.NOT_FOUND,
       });
     }

@@ -3,14 +3,19 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../auth/user.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { ProjectsRepository } from './projects.repository';
-import { Result } from '../result.dto';
+import { Result, ResultStates } from '../result.dto';
 import { GetProjectsFilterDto } from './dto/get-projects-filter.dto';
+
+import { TasksRepository } from '../tasks/tasks.repository';
+import { Project } from './project.entity';
 
 @Injectable()
 export class ProjectsService {
   constructor(
     @InjectRepository(ProjectsRepository)
     private projectsRepository: ProjectsRepository,
+    @InjectRepository(TasksRepository)
+    private tasksRepository: TasksRepository,
   ) {}
 
   // Create a project
@@ -34,8 +39,42 @@ export class ProjectsService {
     return this.projectsRepository.getProjectById(id, user);
   }
 
-  // Get project by Id
+  // Delete Project
   async deleteProject(id: string, user: User): Promise<Result> {
     return this.projectsRepository.deleteProject(id, user);
+  }
+
+  async testing(id: string, user: User): Promise<Result> {
+    const result = await this.tasksRepository.getTasks(
+      { status: null, search: null },
+      user,
+    );
+    const taskList = result.data;
+    console.log(taskList);
+    const project = await this.projectsRepository.findOne({
+      where: {
+        id: id,
+        admin: user,
+      },
+    });
+    console.log(project);
+    project.title = 'this is a test title';
+    project.description = "let's hope it works";
+    project.members = [user];
+    project.tasks = taskList;
+    console.log(project);
+
+    await this.projectsRepository.save(project);
+    console.log('saved');
+    const found = await this.projectsRepository.findOne({
+      relations: { tasks: true, members: true },
+      where: {
+        id: id,
+        admin: user,
+      },
+    });
+    console.log(found.tasks);
+
+    return new Result(ResultStates.OK, found);
   }
 }

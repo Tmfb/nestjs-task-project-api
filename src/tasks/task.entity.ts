@@ -1,6 +1,12 @@
 import { Exclude } from 'class-transformer';
 import { User } from '../auth/user.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { TaskStatus } from './task-status.enum';
 import { Project } from 'src/projects/project.entity';
 
@@ -19,14 +25,18 @@ export class Task {
   status: TaskStatus;
 
   // User relationships
-  @ManyToOne(() => User, (user) => user.createdTasks)
+  @ManyToOne(() => User, (user) => user.createdTasks, { cascade: true })
   admin: User;
 
-  @ManyToOne(() => User, (user) => user.createdTasks)
+  @ManyToOne(() => User, (user) => user.createdTasks, {
+    cascade: ['insert', 'update', 'remove'],
+  })
   resolver: User;
 
   // Project relationship
-  @ManyToOne(() => Project, (project) => project.tasks)
-  @Exclude({ toPlainOnly: true })
+  @ManyToOne(() => Project, (project) => project.tasks, {
+    cascade: ['insert', 'update'],
+  })
+  @JoinColumn()
   project: Project;
 }
