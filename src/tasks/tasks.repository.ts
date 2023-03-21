@@ -58,31 +58,6 @@ export class TasksRepository extends Repository<Task> {
     }
   }
 
-  async getTaskById(id: string, user: User): Promise<Result> {
-    let found: Task;
-    const query = this.createQueryBuilder('task');
-    query.where([{ admin: user }, { resolver: user }]);
-
-    query.andWhere({ id: id });
-
-    try {
-      found = await query.getOne();
-    } catch (error) {
-      return new Result(ResultStates.ERROR, {
-        message: error.message,
-        statusCode: error.statusCode,
-      });
-    }
-
-    if (!found) {
-      return new Result(ResultStates.ERROR, {
-        message: `Task with id ${id} not found`,
-        statusCode: HttpStatus.NOT_FOUND,
-      });
-    }
-    return new Result(ResultStates.OK, found);
-  }
-
   async createTask(createTaskDto: CreateTaskDto, user: User): Promise<Result> {
     const { title, description, resolverUserId } = createTaskDto;
     const task: Task = this.create({
@@ -129,38 +104,6 @@ export class TasksRepository extends Repository<Task> {
       });
     }
     return new Result(ResultStates.OK, task);
-  }
-
-  async updateTaskStatus(
-    id: string,
-    status: TaskStatus,
-    user: User,
-  ): Promise<Result> {
-    const result = await this.getTaskById(id, user);
-
-    // Check for errors retrieving the task
-    if (result.state == ResultStates.ERROR) {
-      return result;
-    }
-
-    //  Modify the encapsulated task in result.data
-    result.data.status = status;
-    // Update the database
-    try {
-      this.save(result.data);
-      return result;
-    } catch (error) {
-      // Log any error and foward it to the controller encapsulated in a Result
-      this.logger.error(
-        `Failed to update status of task with id ${id}`,
-        error.stack,
-      );
-
-      return new Result(ResultStates.ERROR, {
-        message: error.message,
-        statusCode: error.statusCode,
-      });
-    }
   }
 
   async updateTaskResolver(

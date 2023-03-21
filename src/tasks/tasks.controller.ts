@@ -21,14 +21,14 @@ import { TasksService } from './tasks.service';
 @Controller('tasks')
 @UseGuards(AuthGuard())
 export class TasksController {
-  constructor(private taskService: TasksService) {}
+  constructor(private tasksService: TasksService) {}
 
   @Get()
   async getTasks(
     @Query() filterDto: GetTaskFilterDto,
     @GetUser() user: User,
   ): Promise<Task[]> {
-    const result = await this.taskService.getTasks(filterDto, user);
+    const result = await this.tasksService.getTasks(filterDto, user);
 
     if (result.state == ResultStates.ERROR) {
       throw new HttpException(result.data.message, result.data.statusCode);
@@ -42,7 +42,7 @@ export class TasksController {
     @Body() createTaskDto: CreateTaskDto,
     @GetUser() user: User,
   ): Promise<Task> {
-    const result = await this.taskService.createTask(createTaskDto, user);
+    const result = await this.tasksService.createTask(createTaskDto, user);
 
     if (result.state == ResultStates.ERROR) {
       throw new HttpException(result.data.message, result.data.statusCode);
@@ -56,7 +56,7 @@ export class TasksController {
     @Param('id') id: string,
     @GetUser() user: User,
   ): Promise<Task> {
-    const result = await this.taskService.getTaskById(id, user);
+    const result = await this.tasksService.getTaskById(id, user);
 
     if (result.state == ResultStates.ERROR) {
       throw new HttpException(result.data.message, result.data.statusCode);
@@ -70,7 +70,7 @@ export class TasksController {
     @Param('id') id: string,
     @GetUser() user: User,
   ): Promise<void> {
-    const result = await this.taskService.deleteTask(id, user);
+    const result = await this.tasksService.deleteTask(id, user);
 
     if (result.state == ResultStates.ERROR) {
       throw new HttpException(result.data.message, result.data.statusCode);
@@ -87,7 +87,7 @@ export class TasksController {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
     const status = updateTaskDto.status;
-    const result = await this.taskService.updateTaskStatus(id, status, user);
+    const result = await this.tasksService.updateTaskStatus(id, status, user);
 
     if (result.state == ResultStates.ERROR) {
       throw new HttpException(result.data.message, result.data.statusCode);
@@ -106,9 +106,32 @@ export class TasksController {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
     const resolver = updateTaskDto.resolver;
-    const result = await this.taskService.updateTaskResolver(
+    const result = await this.tasksService.updateTaskResolver(
       id,
       resolver,
+      user,
+    );
+
+    if (result.state == ResultStates.ERROR) {
+      throw new HttpException(result.data.message, result.data.statusCode);
+    }
+
+    return result.data;
+  }
+
+  @Patch('/:id/project')
+  async updateTaskProject(
+    @Param('id') id: string,
+    @Body() updateTaskDto: UpdateTaskDto,
+    @GetUser() user: User,
+  ): Promise<Task> {
+    if (updateTaskDto.project == undefined) {
+      throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
+    }
+    const projectId = updateTaskDto.resolver;
+    const result = await this.tasksService.updateTaskProject(
+      id,
+      projectId,
       user,
     );
 
