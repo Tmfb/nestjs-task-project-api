@@ -1,4 +1,3 @@
-import { Exclude } from 'class-transformer';
 import { User } from '../users/user.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { TaskStatus } from './task-status.enum';
@@ -27,6 +26,5 @@ export class Task {
 
   // Project relationship
   @ManyToOne(() => Project, (project) => project.tasks)
-  @Exclude({ toPlainOnly: true })
   project: Project;
 }
