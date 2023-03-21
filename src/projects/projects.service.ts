@@ -3,11 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/user.entity';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { ProjectsRepository } from './projects.repository';
-import { Result, ResultStates } from '../result.dto';
+import { Result } from '../result.dto';
 import { GetProjectsFilterDto } from './dto/get-projects-filter.dto';
 
 import { TasksRepository } from '../tasks/tasks.repository';
-import { Project } from './project.entity';
 
 @Injectable()
 export class ProjectsService {
