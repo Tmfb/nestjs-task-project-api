@@ -7,12 +7,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/user.entity';
 import { Result, ResultStates } from '../result.dto';
 import { ProjectsRepository } from '../projects/projects.repository';
-import { Task } from './task.entity';
 
 @Injectable()
 export class TasksService {
   constructor(
     @InjectRepository(TasksRepository)
+    private tasksRepository: TasksRepository,
+    @InjectRepository(ProjectsRepository)
+    private projectsRepository: ProjectsRepository,
     private tasksRepository: TasksRepository,
     @InjectRepository(ProjectsRepository)
     private projectsRepository: ProjectsRepository,
@@ -71,6 +73,27 @@ export class TasksService {
     status: TaskStatus,
     user: User,
   ): Promise<Result> {
+    const result = await this.getTaskById(id, user);
+
+    // Check for errors retrieving the task
+    if (result.state == ResultStates.ERROR) {
+      return result;
+    }
+
+    //  Modify the encapsulated task in result.data
+    result.data.status = status;
+
+    // Update the database
+    try {
+      this.tasksRepository.save(result.data);
+    } catch (error) {
+      // Log any error and foward it to the controller encapsulated in a Result
+      return new Result(ResultStates.ERROR, {
+        message: error.message,
+        statusCode: error.statusCode,
+      });
+    }
+    return result;
     const result = await this.getTaskById(id, user);
 
     // Check for errors retrieving the task
