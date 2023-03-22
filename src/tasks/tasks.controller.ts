@@ -128,7 +128,7 @@ export class TasksController {
     if (updateTaskDto.project == undefined) {
       throw new HttpException('Bad Request', HttpStatus.BAD_REQUEST);
     }
-    const projectId = updateTaskDto.resolver;
+    const projectId = updateTaskDto.project;
     const result = await this.tasksService.updateTaskProject(
       id,
       projectId,

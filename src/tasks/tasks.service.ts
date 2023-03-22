@@ -7,14 +7,13 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/user.entity';
 import { Result, ResultStates } from '../result.dto';
 import { ProjectsRepository } from '../projects/projects.repository';
+import { Task } from './task.entity';
+import { Project } from '../projects/project.entity';
 
 @Injectable()
 export class TasksService {
   constructor(
     @InjectRepository(TasksRepository)
-    private tasksRepository: TasksRepository,
-    @InjectRepository(ProjectsRepository)
-    private projectsRepository: ProjectsRepository,
     private tasksRepository: TasksRepository,
     @InjectRepository(ProjectsRepository)
     private projectsRepository: ProjectsRepository,
@@ -25,11 +24,11 @@ export class TasksService {
   }
 
   async getTaskById(id: string, user: User): Promise<Result> {
-    let foundTask;
+    let foundTask: Task;
     // Fetch task
 
     try {
-      foundTask = await this.tasksRepository.find({
+      foundTask = await this.tasksRepository.findOne({
         where: [
           { id: id, admin: user },
           { id: id, resolver: user },
@@ -86,27 +85,7 @@ export class TasksService {
     // Update the database
     try {
       this.tasksRepository.save(result.data);
-    } catch (error) {
-      // Log any error and foward it to the controller encapsulated in a Result
-      return new Result(ResultStates.ERROR, {
-        message: error.message,
-        statusCode: error.statusCode,
-      });
-    }
-    return result;
-    const result = await this.getTaskById(id, user);
-
-    // Check for errors retrieving the task
-    if (result.state == ResultStates.ERROR) {
       return result;
-    }
-
-    //  Modify the encapsulated task in result.data
-    result.data.status = status;
-
-    // Update the database
-    try {
-      this.tasksRepository.save(result.data);
     } catch (error) {
       // Log any error and foward it to the controller encapsulated in a Result
       return new Result(ResultStates.ERROR, {
@@ -114,7 +93,6 @@ export class TasksService {
         statusCode: error.statusCode,
       });
     }
-    return result;
   }
 
   async updateTaskResolver(
@@ -130,11 +108,11 @@ export class TasksService {
     projectId: string,
     user: User,
   ): Promise<Result> {
-    let foundTask, foundProject;
+    let foundTask, foundProject: Project;
 
     // Fetch Task
     try {
-      foundTask = await this.tasksRepository.find({
+      foundTask = await this.tasksRepository.findOne({
         where: { id: id, admin: user },
         relations: {
           project: true,
@@ -157,7 +135,7 @@ export class TasksService {
 
     // Fetch Project
     try {
-      foundProject = await this.projectsRepository.find({
+      foundProject = await this.projectsRepository.findOne({
         where: { id: projectId },
         relations: { tasks: true },
       });
@@ -176,6 +154,11 @@ export class TasksService {
       });
     }
 
+    // If project is empty, initialice it's task list
+    if (foundProject.tasks == undefined) {
+      foundProject.tasks = [];
+    }
+
     // Check if task already belongs to the project
     if (
       foundProject.tasks.some((task: Task) => {
@@ -188,8 +171,17 @@ export class TasksService {
       });
     }
 
-    //
-
-    return this.updateTaskProject(id, projectId, user);
+    // Modify the project.tasks and save to the database, cascade will update task.project
+    foundProject.tasks.push(foundTask);
+    try {
+      this.projectsRepository.save(foundProject);
+      foundTask.project = foundProject.id;
+      return new Result(ResultStates.OK, foundTask);
+    } catch (error) {
+      return new Result(ResultStates.ERROR, {
+        message: error.message,
+        statusCode: error.statusCode,
+      });
+    }
   }
 }
