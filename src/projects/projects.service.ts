@@ -59,7 +59,7 @@ export class ProjectsService {
     try {
       foundProject = await this.projectsRepository.findOne({
         where: { id: id },
-        relations: { members: true, tasks: true, admin: true },
+        relations: { admin: true, members: true, tasks: true },
       });
     } catch (error) {
       return new Result(ResultStates.ERROR, {
@@ -67,7 +67,7 @@ export class ProjectsService {
         statusCode: error.statusCode,
       });
     }
-    console.log(foundProject);
+
     // If query comes back empty Project doesn't exist
     if (!foundProject) {
       return new Result(ResultStates.ERROR, {
