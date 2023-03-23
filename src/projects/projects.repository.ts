@@ -34,7 +34,6 @@ export class ProjectsRepository extends Repository<Project> {
         statusCode: error.statusCode,
       });
     }
-    return new Result(ResultStates.OK, project);
   }
 
   async getProjects(
@@ -62,31 +61,6 @@ export class ProjectsRepository extends Repository<Project> {
       });
     }
     return new Result(ResultStates.OK, projects);
-  }
-
-  async getProjectById(id: string, user: User): Promise<Result> {
-    let project;
-    const query = this.createQueryBuilder('project');
-    query.where('project.admin = :adminId ', { adminId: user.id });
-    query.andWhere('project.id = :id', { id: id });
-
-    try {
-      project = await query.getOne();
-    } catch (error) {
-      return new Result(ResultStates.ERROR, {
-        message: error.message,
-        statusCode: error.statusCode,
-      });
-    }
-
-    if (!project) {
-      return new Result(ResultStates.ERROR, {
-        message: `Project with id ${id} not found`,
-        statusCode: HttpStatus.NOT_FOUND,
-      });
-    }
-
-    return new Result(ResultStates.OK, project);
   }
 
   async deleteProject(id: string, user: User): Promise<Result> {

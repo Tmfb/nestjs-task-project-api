@@ -16,6 +16,7 @@ import { Result, ResultStates } from '../result.dto';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { GetProjectsFilterDto } from './dto/get-projects-filter.dto';
 import { ProjectsService } from './projects.service';
+import { Project } from './project.entity';
 
 @Controller('projects')
 @UseGuards(AuthGuard())
@@ -27,7 +28,7 @@ export class ProjectsController {
   async createProject(
     @Body() createProjectDto: CreateProjectDto,
     @GetUser() user: User,
-  ): Promise<Result> {
+  ): Promise<Project> {
     const result: Result = await this.projectsService.createProject(
       createProjectDto,
       user,
@@ -36,7 +37,6 @@ export class ProjectsController {
     if (result.state == ResultStates.ERROR) {
       throw new HttpException(result.data.message, result.data.statusCode);
     }
-
     return result.data;
   }
 
@@ -45,7 +45,7 @@ export class ProjectsController {
   async getProjects(
     @Query() filterDto: GetProjectsFilterDto,
     @GetUser() user: User,
-  ): Promise<Result> {
+  ): Promise<Project[]> {
     const result = await this.projectsService.getProjects(filterDto, user);
 
     if (result.state == ResultStates.ERROR) {
