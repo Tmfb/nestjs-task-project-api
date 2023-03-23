@@ -2,6 +2,7 @@ import { Task } from '../tasks/task.entity';
 import {
   Column,
   Entity,
+  JoinTable,
   ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -31,5 +32,6 @@ export class User {
   administratedProjects: Project[];
 
   @ManyToMany(() => Project, (project) => project.members)
+  @JoinTable()
   projects: Project[];
 }
