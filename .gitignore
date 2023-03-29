@@ -37,3 +37,8 @@ lerna-debug.log*
 # VSCode extensions
 .prettierrc
 .eslintrc.js
+
+# Package.json while in Canarias
+.gitignore
+package-lock.json
+package.json
