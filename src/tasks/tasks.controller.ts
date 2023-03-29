@@ -37,12 +37,12 @@ export class TasksController {
     return result.data;
   }
 
-  @Post()
-  async createTask(
-    @Body() createTaskDto: CreateTaskDto,
+  @Get('/:id')
+  async getTaskById(
+    @Param('id') id: string,
     @GetUser() user: User,
   ): Promise<Task> {
-    const result = await this.tasksService.createTask(createTaskDto, user);
+    const result = await this.tasksService.getTaskById(id, user);
 
     if (result.state == ResultStates.ERROR) {
       throw new HttpException(result.data.message, result.data.statusCode);
@@ -51,12 +51,12 @@ export class TasksController {
     return result.data;
   }
 
-  @Get('/:id')
-  async getTaskById(
-    @Param('id') id: string,
+  @Post()
+  async createTask(
+    @Body() createTaskDto: CreateTaskDto,
     @GetUser() user: User,
   ): Promise<Task> {
-    const result = await this.tasksService.getTaskById(id, user);
+    const result = await this.tasksService.createTask(createTaskDto, user);
 
     if (result.state == ResultStates.ERROR) {
       throw new HttpException(result.data.message, result.data.statusCode);
