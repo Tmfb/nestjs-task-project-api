@@ -86,4 +86,24 @@ export class ProjectsController {
 
     return result.data;
   }
+
+  // Delete User from Project
+  @Delete('/:projectId/members/:memberId')
+  async deleteMember(
+    @Param('projectId') projectId: string,
+    @Param('memberId') memberId: string,
+    @GetUser() user: User,
+  ): Promise<User> {
+    const result = await this.projectsService.deleteMember(
+      projectId,
+      memberId,
+      user,
+    );
+
+    if (result.state == ResultStates.ERROR) {
+      throw new HttpException(result.data.message, result.data.statusCode);
+    }
+
+    return result.data;
+  }
 }

@@ -8,6 +8,7 @@ import { GetProjectsFilterDto } from './dto/get-projects-filter.dto';
 
 import { TasksRepository } from '../tasks/tasks.repository';
 import { Project } from './project.entity';
+import { UsersRepository } from '../auth/auth.repository';
 
 @Injectable()
 export class ProjectsService {
@@ -16,6 +17,8 @@ export class ProjectsService {
     private projectsRepository: ProjectsRepository,
     @InjectRepository(TasksRepository)
     private tasksRepository: TasksRepository,
+    @InjectRepository(UsersRepository)
+    private usersRepository: UsersRepository,
   ) {}
 
   // Create a project
@@ -95,5 +98,56 @@ export class ProjectsService {
   // Delete Project
   async deleteProject(id: string, user: User): Promise<Result> {
     return this.projectsRepository.deleteProject(id, user);
+  }
+
+  // Delete member from Project
+  async deleteMember(projectId: string, memberId: string, user: User) {
+    let foundProject: Project, foundMember: User;
+
+    // Fetch Project
+    try {
+      foundProject = await this.projectsRepository.findOne({
+        where: { id: projectId },
+        relations: { admin: true, members: true },
+      });
+    } catch (error) {
+      return new Result(ResultStates.ERROR, {
+        message: error.message,
+        statusCode: error.statusCode,
+      });
+    }
+
+    // If query returns empty either project doesn't exist or user is not admin
+    if (!foundProject) {
+      return new Result(ResultStates.ERROR, {
+        message: `Project with id ${projectId} not found or you don't have permision to modify it's members`,
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
+
+    try {
+      foundMember = await this.usersRepository.findOne({
+        where: { id: memberId },
+      });
+    } catch (error) {
+      return new Result(ResultStates.ERROR, {
+        message: error.message,
+        statusCode: error.statusCode,
+      });
+    }
+
+    if (!foundMember) {
+      return new Result(ResultStates.ERROR, {
+        message: `User with id ${memberId} not found`,
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
+
+    const memberIndex = foundProject.members.indexOf(foundMember);
+    // If user is ad
+    if (memberIndex != -1 && foundProject.admin.id == user.id) {
+      foundProject.members.splice(memberIndex, 1);
+      return new Result(ResultStates.OK, foundProject);
+    }
   }
 }
