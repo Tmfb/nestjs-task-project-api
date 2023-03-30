@@ -8,17 +8,17 @@ import {
   Post,
   Query,
   UseGuards,
-} from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { GetUser } from '../auth/get-user.decorator';
-import { User } from '../users/user.entity';
-import { Result, ResultStates } from '../result.dto';
-import { CreateProjectDto } from './dto/create-project.dto';
-import { GetProjectsFilterDto } from './dto/get-projects-filter.dto';
-import { ProjectsService } from './projects.service';
-import { Project } from './project.entity';
+} from "@nestjs/common";
+import { AuthGuard } from "@nestjs/passport";
+import { GetUser } from "../auth/get-user.decorator";
+import { User } from "../users/user.entity";
+import { Result, ResultStates } from "../result.dto";
+import { CreateProjectDto } from "./dto/create-project.dto";
+import { GetProjectsFilterDto } from "./dto/get-projects-filter.dto";
+import { ProjectsService } from "./projects.service";
+import { Project } from "./project.entity";
 
-@Controller('projects')
+@Controller("projects")
 @UseGuards(AuthGuard())
 export class ProjectsController {
   constructor(private projectsService: ProjectsService) {}
@@ -27,11 +27,11 @@ export class ProjectsController {
   @Post()
   async createProject(
     @Body() createProjectDto: CreateProjectDto,
-    @GetUser() user: User,
+    @GetUser() user: User
   ): Promise<Project> {
     const result: Result = await this.projectsService.createProject(
       createProjectDto,
-      user,
+      user
     );
 
     if (result.state == ResultStates.ERROR) {
@@ -44,7 +44,7 @@ export class ProjectsController {
   @Get()
   async getProjects(
     @Query() filterDto: GetProjectsFilterDto,
-    @GetUser() user: User,
+    @GetUser() user: User
   ): Promise<Project[]> {
     const result = await this.projectsService.getProjects(filterDto, user);
 
@@ -56,10 +56,10 @@ export class ProjectsController {
   }
 
   // Get project by Id
-  @Get('/:id')
+  @Get("/:id")
   async getProjectById(
-    @Param('id') id: string,
-    @GetUser() user: User,
+    @Param("id") id: string,
+    @GetUser() user: User
   ): Promise<Result> {
     const result = await this.projectsService.getProjectById(id, user);
 
@@ -73,10 +73,10 @@ export class ProjectsController {
   // Update project
 
   // Delete Project
-  @Delete('/:id')
+  @Delete("/:id")
   async deleteProject(
-    @Param('id') id: string,
-    @GetUser() user: User,
+    @Param("id") id: string,
+    @GetUser() user: User
   ): Promise<Result> {
     const result = await this.projectsService.deleteProject(id, user);
 
@@ -87,17 +87,37 @@ export class ProjectsController {
     return result.data;
   }
 
+  // Add User to Project
+  @Post("/:projectId/members/:memberId")
+  async addMemberToProject(
+    @Param("projectId") projectId: string,
+    @Param("memberId") memberId: string,
+    @GetUser() user: User
+  ): Promise<Project> {
+    const result: Result = await this.projectsService.addMemberToProject(
+      projectId,
+      memberId,
+      user
+    );
+
+    if (result.state == ResultStates.ERROR) {
+      throw new HttpException(result.data.message, result.data.statusCode);
+    }
+
+    return result.data;
+  }
+
   // Delete User from Project
-  @Delete('/:projectId/members/:memberId')
+  @Delete("/:projectId/members/:memberId")
   async deleteMember(
-    @Param('projectId') projectId: string,
-    @Param('memberId') memberId: string,
-    @GetUser() user: User,
+    @Param("projectId") projectId: string,
+    @Param("memberId") memberId: string,
+    @GetUser() user: User
   ): Promise<User> {
     const result = await this.projectsService.deleteMember(
       projectId,
       memberId,
-      user,
+      user
     );
 
     if (result.state == ResultStates.ERROR) {

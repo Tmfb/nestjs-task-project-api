@@ -100,6 +100,74 @@ export class ProjectsService {
     return this.projectsRepository.deleteProject(id, user);
   }
 
+  // Add member to Project
+  async addMemberToProject(projectId: string, memberId: string, user: User) {
+    let foundProject: Project, foundMember: User;
+
+    // Fetch Project
+    try {
+      foundProject = await this.projectsRepository.findOne({
+        where: { id: projectId, admin: user },
+        relations: { members: true },
+      });
+    } catch (error) {
+      return new Result(ResultStates.ERROR, {
+        message: error.message,
+        statusCode: error.statusCode,
+      });
+    }
+
+    // If query returned emtpy either project doesn't exist or authed user is not admin
+    if (!foundProject) {
+      return new Result(ResultStates.ERROR, {
+        message: `Project with ${projectId} not found or aren't authoriced to change it's members`,
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
+
+    // Fetch member
+    try {
+      foundMember = await this.usersRepository.findOne({
+        where: { id: memberId },
+      });
+    } catch (error) {
+      return new Result(ResultStates.ERROR, {
+        message: error.message,
+        statusCode: error.statusCode,
+      });
+    }
+
+    // if query returned empty member is not a real user
+    if (!foundMember) {
+      return new Result(ResultStates.ERROR, {
+        message: `Member with ${memberId} not found`,
+        statusCode: HttpStatus.NOT_FOUND,
+      });
+    }
+
+    const memberIndex: number = foundProject.members.indexOf(foundMember);
+
+    // Check if member exists already in project
+    if (memberIndex != -1) {
+      return new Result(ResultStates.ERROR, {
+        message: `User with id ${memberId} is already a member of project with id ${projectId}`,
+        statusCode: HttpStatus.BAD_REQUEST,
+      });
+    }
+
+    // Add member to project, update database and return user
+    foundProject.members.push(foundMember);
+    try {
+      this.projectsRepository.save(foundProject);
+      return new Result(ResultStates.OK, foundMember);
+    } catch (error) {
+      return new Result(ResultStates.ERROR, {
+        message: error.message,
+        statusCode: error.statusCode,
+      });
+    }
+  }
+
   // Delete member from Project
   async deleteMember(projectId: string, memberId: string, user: User) {
     let foundProject: Project, foundMember: User;
