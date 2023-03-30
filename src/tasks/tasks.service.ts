@@ -96,11 +96,11 @@ export class TasksService {
   }
 
   async updateTaskResolver(
-    id: string,
-    resolver: string,
+    taskId: string,
+    resolverId: string,
     user: User,
   ): Promise<Result> {
-    return this.tasksRepository.updateTaskResolver(id, resolver, user);
+    return this.tasksRepository.updateTaskResolver(taskId, resolverId, user);
   }
 
   async updateTaskProject(

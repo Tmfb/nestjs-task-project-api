@@ -8,7 +8,7 @@ export class UpdateTaskDto {
 
   @IsOptional()
   @IsUUID()
-  resolver: string;
+  resolverId: string;
 
   @IsOptional()
   @IsUUID()
