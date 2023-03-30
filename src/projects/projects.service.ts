@@ -1,14 +1,14 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../users/user.entity';
-import { CreateProjectDto } from './dto/create-project.dto';
-import { ProjectsRepository } from './projects.repository';
-import { Result, ResultStates } from '../result.dto';
-import { GetProjectsFilterDto } from './dto/get-projects-filter.dto';
+import { HttpStatus, Injectable } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { User } from "../users/user.entity";
+import { CreateProjectDto } from "./dto/create-project.dto";
+import { ProjectsRepository } from "./projects.repository";
+import { Result, ResultStates } from "../result.dto";
+import { GetProjectsFilterDto } from "./dto/get-projects-filter.dto";
 
-import { TasksRepository } from '../tasks/tasks.repository';
-import { Project } from './project.entity';
-import { UsersRepository } from '../auth/auth.repository';
+import { TasksRepository } from "../tasks/tasks.repository";
+import { Project } from "./project.entity";
+import { UsersRepository } from "../auth/auth.repository";
 
 @Injectable()
 export class ProjectsService {
@@ -18,13 +18,13 @@ export class ProjectsService {
     @InjectRepository(TasksRepository)
     private tasksRepository: TasksRepository,
     @InjectRepository(UsersRepository)
-    private usersRepository: UsersRepository,
+    private usersRepository: UsersRepository
   ) {}
 
   // Create a project
   async createProject(
     createProjectDto: CreateProjectDto,
-    user: User,
+    user: User
   ): Promise<Result> {
     const { title, description } = createProjectDto;
     const project: Project = this.projectsRepository.create({
@@ -49,7 +49,7 @@ export class ProjectsService {
   // Get all projects with optional filters
   async getProjects(
     filterDto: GetProjectsFilterDto,
-    user: User,
+    user: User
   ): Promise<Result> {
     return this.projectsRepository.getProjects(filterDto, user);
   }
@@ -144,10 +144,25 @@ export class ProjectsService {
     }
 
     const memberIndex = foundProject.members.indexOf(foundMember);
-    // If user is ad
-    if (memberIndex != -1 && foundProject.admin.id == user.id) {
-      foundProject.members.splice(memberIndex, 1);
-      return new Result(ResultStates.OK, foundProject);
+
+    // Check if the proposed member for delete belongs to the project
+    if (memberIndex == -1) {
+      return new Result(ResultStates.ERROR, {
+        message: `User with id ${memberId} isn't asigned to project with id ${projectId}`,
+        statusCode: HttpStatus.BAD_REQUEST,
+      });
+    }
+
+    // Remove member from project using array splice, update database and return removed member
+    const removed = foundProject.members.splice(memberIndex, 1);
+    try {
+      this.projectsRepository.save(foundProject);
+      return new Result(ResultStates.OK, removed);
+    } catch (error) {
+      return new Result(ResultStates.ERROR, {
+        message: error.message,
+        statusCode: error.statusCode,
+      });
     }
   }
 }
