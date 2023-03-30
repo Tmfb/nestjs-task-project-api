@@ -5,6 +5,7 @@ import {
   Get,
   HttpException,
   Param,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -88,7 +89,7 @@ export class ProjectsController {
   }
 
   // Add User to Project
-  @Post("/:projectId/members/:memberId")
+  @Patch("/:projectId/members/:memberId")
   async addMemberToProject(
     @Param("projectId") projectId: string,
     @Param("memberId") memberId: string,
