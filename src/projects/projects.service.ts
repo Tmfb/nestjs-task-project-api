@@ -175,8 +175,8 @@ export class ProjectsService {
     // Fetch Project
     try {
       foundProject = await this.projectsRepository.findOne({
-        where: { id: projectId },
-        relations: { admin: true, members: true },
+        where: { id: projectId, admin: user },
+        relations: { members: true },
       });
     } catch (error) {
       return new Result(ResultStates.ERROR, {
@@ -211,7 +211,9 @@ export class ProjectsService {
       });
     }
 
-    const memberIndex = foundProject.members.indexOf(foundMember);
+    const memberIndex: number = foundProject.members.findIndex((member) => {
+      member.id === foundMember.id;
+    });
 
     // Check if the proposed member for delete belongs to the project
     if (memberIndex == -1) {
