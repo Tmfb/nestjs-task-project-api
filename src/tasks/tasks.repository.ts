@@ -28,7 +28,11 @@ export class TasksRepository extends Repository<Task> {
     const { status, search } = filterDto;
 
     const query = this.createQueryBuilder("task");
-    query.where([{ admin: user }, { resolver: user }]);
+    query
+      .leftJoinAndSelect("task.project", "project")
+      .leftJoinAndSelect("task.resolver", "resolver")
+      .leftJoinAndSelect("task.admin", "admin")
+      .where([{ admin: user }, { resolver: user }]);
     //status filter
     if (status) {
       query.andWhere({ status: status });
@@ -129,7 +133,6 @@ export class TasksRepository extends Repository<Task> {
       });
     }
 
-    console.log(foundTask); // FIXME
     // If Query returns empty either task doesn't exist or authed user is not admin
     if (!foundTask) {
       return new Result(ResultStates.ERROR, {
