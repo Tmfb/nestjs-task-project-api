@@ -1,14 +1,14 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { TaskStatus } from './task-status.enum';
-import { CreateTaskDto } from './dto/create-task.dto';
-import { GetTaskFilterDto } from './dto/get-tasks-filter.dto';
-import { TasksRepository } from './tasks.repository';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../users/user.entity';
-import { Result, ResultStates } from '../result.dto';
-import { ProjectsRepository } from '../projects/projects.repository';
-import { Task } from './task.entity';
-import { Project } from '../projects/project.entity';
+import { HttpStatus, Injectable } from "@nestjs/common";
+import { TaskStatus } from "./task-status.enum";
+import { CreateTaskDto } from "./dto/create-task.dto";
+import { GetTaskFilterDto } from "./dto/get-tasks-filter.dto";
+import { TasksRepository } from "./tasks.repository";
+import { InjectRepository } from "@nestjs/typeorm";
+import { User } from "../users/user.entity";
+import { Result, ResultStates } from "../result.dto";
+import { ProjectsRepository } from "../projects/projects.repository";
+import { Task } from "./task.entity";
+import { Project } from "../projects/project.entity";
 
 @Injectable()
 export class TasksService {
@@ -16,7 +16,7 @@ export class TasksService {
     @InjectRepository(TasksRepository)
     private tasksRepository: TasksRepository,
     @InjectRepository(ProjectsRepository)
-    private projectsRepository: ProjectsRepository,
+    private projectsRepository: ProjectsRepository
   ) {}
 
   async getTasks(filterDto: GetTaskFilterDto, user: User): Promise<Result> {
@@ -33,7 +33,7 @@ export class TasksService {
           { id: id, admin: user },
           { id: id, resolver: user },
         ],
-        relations: { project: true },
+        relations: { project: true, resolver: true, admin: true },
       });
     } catch (error) {
       return new Result(ResultStates.ERROR, {
@@ -70,7 +70,7 @@ export class TasksService {
   async updateTaskStatus(
     id: string,
     status: TaskStatus,
-    user: User,
+    user: User
   ): Promise<Result> {
     const result = await this.getTaskById(id, user);
 
@@ -98,7 +98,7 @@ export class TasksService {
   async updateTaskResolver(
     taskId: string,
     resolverId: string,
-    user: User,
+    user: User
   ): Promise<Result> {
     return this.tasksRepository.updateTaskResolver(taskId, resolverId, user);
   }
@@ -106,7 +106,7 @@ export class TasksService {
   async updateTaskProject(
     id: string,
     projectId: string,
-    user: User,
+    user: User
   ): Promise<Result> {
     let foundTask, foundProject: Project;
 
