@@ -65,6 +65,7 @@ export class TasksService {
         statusCode: HttpStatus.NOT_FOUND,
       });
     }
+    return new Result(ResultStates.OK);
   }
 
   async updateTaskStatus(
