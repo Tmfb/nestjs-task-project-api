@@ -1,11 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { User } from '../users/user.entity';
-import { Result, ResultStates } from '../result.dto';
-import { DataSource, Repository } from 'typeorm';
-import { CreateProjectDto } from './dto/create-project.dto';
-import { Project } from './project.entity';
-import { GetProjectsFilterDto } from './dto/get-projects-filter.dto';
-import { HttpStatus } from '@nestjs/common/enums';
+import { Injectable } from "@nestjs/common";
+import { User } from "../users/user.entity";
+import { Result, ResultStates } from "../result.dto";
+import { DataSource, Repository } from "typeorm";
+import { CreateProjectDto } from "./dto/create-project.dto";
+import { Project } from "./project.entity";
+import { GetProjectsFilterDto } from "./dto/get-projects-filter.dto";
+import { HttpStatus } from "@nestjs/common/enums";
+import { TasksRepository } from "../tasks/tasks.repository";
 
 @Injectable()
 export class ProjectsRepository extends Repository<Project> {
@@ -15,7 +16,7 @@ export class ProjectsRepository extends Repository<Project> {
 
   async createProject(
     createProjectDto: CreateProjectDto,
-    user: User,
+    user: User
   ): Promise<Result> {
     const { title, description } = createProjectDto;
     const project: Project = this.create({
@@ -38,16 +39,16 @@ export class ProjectsRepository extends Repository<Project> {
 
   async getProjects(
     filterDto: GetProjectsFilterDto,
-    user: User,
+    user: User
   ): Promise<Result> {
     const { search } = filterDto;
-    const query = this.createQueryBuilder('project');
-    query.where('project.admin = :adminId ', { adminId: user.id });
+    const query = this.createQueryBuilder("project");
+    query.where("project.admin = :adminId ", { adminId: user.id });
 
     if (search) {
       query.andWhere(
-        'LOWER(project.title) LIKE LOWER(:search) OR LOWER(project.description) LIKE LOWER(:search)',
-        { search: search },
+        "LOWER(project.title) LIKE LOWER(:search) OR LOWER(project.description) LIKE LOWER(:search)",
+        { search: search }
       );
     }
 
@@ -63,10 +64,14 @@ export class ProjectsRepository extends Repository<Project> {
     return new Result(ResultStates.OK, projects);
   }
 
-  async deleteProject(id: string, user: User): Promise<Result> {
-    let removed;
+  async deleteProject(projectId: string, user: User): Promise<Result> {
+    let foundProject: Project;
+
     try {
-      removed = await this.delete({ id: id, admin: user });
+      foundProject = await this.findOne({
+        where: { id: projectId, admin: user },
+        relations: { members: true },
+      });
     } catch (error) {
       return new Result(ResultStates.ERROR, {
         message: error.message,
@@ -74,12 +79,20 @@ export class ProjectsRepository extends Repository<Project> {
       });
     }
 
-    if (removed.affected == 0) {
+    // If query returned emtpy either project doesn't exist or authed user is not admin
+    if (!foundProject) {
       return new Result(ResultStates.ERROR, {
-        message: `Project with id ${id} not found`,
+        message: `Project with ${projectId} not found or aren't authoriced to change it's members`,
         statusCode: HttpStatus.NOT_FOUND,
       });
     }
+
+    // Clear relationships 
+    foundProject.tasks = [];
+    foundProject.members = [];
+    await this.save(foundProject);
+    // Delete from db
+    await this.delete({ id: foundProject.id });
 
     return new Result(ResultStates.OK);
   }

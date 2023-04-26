@@ -1,4 +1,4 @@
-import { User } from '../users/user.entity';
+import { User } from "../users/user.entity";
 import {
   Column,
   Entity,
@@ -6,12 +6,12 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
-} from 'typeorm';
-import { Task } from '../tasks/task.entity';
+} from "typeorm";
+import { Task } from "../tasks/task.entity";
 
 @Entity()
 export class Project {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryGeneratedColumn("uuid")
   id: string;
 
   @Column()
@@ -28,6 +28,9 @@ export class Project {
   members: User[];
 
   // Task relationship
-  @OneToMany(() => Task, (task) => task.project)
+  @OneToMany(() => Task, (task) => task.project, {
+    cascade: true,
+    onDelete: "SET NULL",
+  })
   tasks: Task[];
 }

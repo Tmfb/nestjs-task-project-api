@@ -83,7 +83,8 @@ export class ProjectsService {
     if (
       foundProject.members.some((member) => {
         return member.id == user.id;
-      })
+      }) ||
+      foundProject.admin.id == user.id
     ) {
       return new Result(ResultStates.OK, foundProject);
     }
@@ -188,7 +189,7 @@ export class ProjectsService {
     // If query returns empty either project doesn't exist or user is not admin
     if (!foundProject) {
       return new Result(ResultStates.ERROR, {
-        message: `Project with id ${projectId} not found or you don't have permision to modify it's members`,
+        message: `Project with id ${projectId} not found or are not admin`,
         statusCode: HttpStatus.NOT_FOUND,
       });
     }
@@ -211,9 +212,9 @@ export class ProjectsService {
       });
     }
 
-    const memberIndex: number = foundProject.members.findIndex((member) => {
-      member.id === foundMember.id;
-    });
+    const memberIndex: number = foundProject.members.findIndex(
+      (member) => member.id === foundMember.id
+    );
 
     // Check if the proposed member for delete belongs to the project
     if (memberIndex == -1) {
