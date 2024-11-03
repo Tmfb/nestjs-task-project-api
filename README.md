@@ -75,6 +75,7 @@ To access protected routes, you must first authenticate with your credentials an
 
 ### API Endpoints
 
+A Swagger UI documentation can be found on the /api endpoint.
 Below is a summary of the available API endpoints.
 
 #### Authentication

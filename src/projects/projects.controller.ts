@@ -18,7 +18,19 @@ import { CreateProjectDto } from "./dto/create-project.dto";
 import { GetProjectsFilterDto } from "./dto/get-projects-filter.dto";
 import { ProjectsService } from "./projects.service";
 import { Project } from "./project.entity";
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+} from "@nestjs/swagger";
 
+// Swagger decorators
+@ApiResponse({ status: 400, description: "Bad request" })
+@ApiResponse({ status: 401, description: "Unauthorized" })
+@ApiResponse({ status: 404, description: "Not found" })
+@ApiBearerAuth()
+// Nestjs decorators
 @Controller("projects")
 @UseGuards(AuthGuard())
 export class ProjectsController {
@@ -26,6 +38,11 @@ export class ProjectsController {
 
   // Create a project
   @Post()
+  @ApiOperation({ summary: "Create project with given parameters" })
+  @ApiResponse({
+    status: 200,
+    description: "Successfull response",
+  })
   async createProject(
     @Body() createProjectDto: CreateProjectDto,
     @GetUser() user: User
@@ -43,6 +60,12 @@ export class ProjectsController {
 
   // Get all projects with optional filters
   @Get()
+  @ApiOperation({ summary: "Retrieve all projects" })
+  @ApiResponse({
+    status: 200,
+    description: "Successfull response",
+    isArray: true,
+  })
   async getProjects(
     @Query() filterDto: GetProjectsFilterDto,
     @GetUser() user: User
@@ -57,12 +80,22 @@ export class ProjectsController {
   }
 
   // Get project by Id
-  @Get("/:id")
+  @Get("/:projectId")
+  @ApiOperation({ summary: "Retrieve task with matching id" })
+  @ApiParam({
+    name: "projectId",
+    required: true,
+    description: "Id of the project to retrieve",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Successfull response",
+  })
   async getProjectById(
-    @Param("id") id: string,
+    @Param("projectId") projectId: string,
     @GetUser() user: User
   ): Promise<Result> {
-    const result = await this.projectsService.getProjectById(id, user);
+    const result = await this.projectsService.getProjectById(projectId, user);
 
     if (result.state == ResultStates.ERROR) {
       throw new HttpException(result.data.message, result.data.statusCode);
@@ -73,23 +106,27 @@ export class ProjectsController {
 
   // Update project
 
-  // Delete Project
-  @Delete("/:id")
-  async deleteProject(
-    @Param("id") id: string,
-    @GetUser() user: User
-  ): Promise<Result> {
-    const result = await this.projectsService.deleteProject(id, user);
-
-    if (result.state == ResultStates.ERROR) {
-      throw new HttpException(result.data.message, result.data.statusCode);
-    }
-
-    return result.data;
-  }
-
   // Add User to Project
   @Patch("/:projectId/members/:memberId")
+  @ApiOperation({
+    summary: "Add user to the member list of a given project",
+  })
+  @ApiParam({
+    name: "projectId",
+    example: "43d437ac-d4ff-47bf-82bf-102fdf876d51",
+    required: true,
+    description: "Id of the project to update",
+  })
+  @ApiParam({
+    name: "memberId",
+    example: "ba46bca0-7c87-49c8-ac60-ad00b8a40720",
+    required: true,
+    description: "Id of the member to add",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Member succesfully added to the project",
+  })
   async addMemberToProject(
     @Param("projectId") projectId: string,
     @Param("memberId") memberId: string,
@@ -108,8 +145,52 @@ export class ProjectsController {
     return result.data;
   }
 
+  // Delete Project
+  @Delete("/:projectId")
+  @ApiOperation({
+    summary: "Delete project with given id if user is admin",
+  })
+  @ApiParam({
+    name: "projectId",
+    required: true,
+    description: "Id of the project to delete",
+  })
+  @ApiResponse({
+    status: 204,
+    description: "Project successfully deleted",
+  })
+  async deleteProject(
+    @Param("projectId") projectId: string,
+    @GetUser() user: User
+  ): Promise<Result> {
+    const result = await this.projectsService.deleteProject(projectId, user);
+
+    if (result.state == ResultStates.ERROR) {
+      throw new HttpException(result.data.message, result.data.statusCode);
+    }
+
+    return result.data;
+  }
+
   // Delete User from Project
   @Delete("/:projectId/members/:memberId")
+  @ApiOperation({
+    summary: "Delete project with given id if user is admin",
+  })
+  @ApiParam({
+    name: "projectId",
+    required: true,
+    description: "Id of the project to delete",
+  })
+  @ApiParam({
+    name: "memberId",
+    required: true,
+    description: "Id of the memberId to delete",
+  })
+  @ApiResponse({
+    status: 204,
+    description: "Project successfully deleted",
+  })
   async deleteMember(
     @Param("projectId") projectId: string,
     @Param("memberId") memberId: string,
